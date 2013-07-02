@@ -2,12 +2,27 @@ from flask import Flask, Response, request, jsonify
 import fedmsg.config
 import fedmsg.meta
 import json
+import datetime
+import pretty
 
 meta_config = fedmsg.config.load_config([], None)
 fedmsg.meta.make_processors(**meta_config)
 
 app = Flask(__name__)
 app.debug = True
+
+def _timestamp(message):
+    '''Return a dict containing the timestamp in a bunch of formats.'''
+    ts = message['timestamp']
+    ts_obj = datetime.datetime.fromtimestamp(ts)
+    return {
+        'ago': pretty.date(ts_obj),
+        'iso': ts_obj.isoformat(),
+        'usadate': ts_obj.strftime("%m/%d/%Y"),
+        'fulldate': ts_obj.strftime("%A, %B %d, %Y"),
+        'time': ts_obj.strftime("%H:%M %p"),
+        'epoch': ts,
+    }
 
 meta_methods = {
     #'avatars': fedmsg.meta.msg2avatars,
@@ -21,6 +36,7 @@ meta_methods = {
     'subtitle': fedmsg.meta.msg2subtitle,
     'title': fedmsg.meta.msg2title,
     'usernames': fedmsg.meta.msg2usernames,
+    'timestamp': _timestamp,
     'all': str,
 }
 
