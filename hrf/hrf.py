@@ -56,6 +56,8 @@ def route(api_method):
                 # Return a JSON dict of all HR responses
                 values = {}
                 for name in meta_methods.keys():
+                    if name == 'all':
+                        continue
                     result = meta_methods[name](message)
                     if isinstance(result, set):
                         result = list(result)
