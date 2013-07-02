@@ -2,7 +2,6 @@ from flask import Flask, Response, request, jsonify
 import fedmsg.config
 import fedmsg.meta
 import json
-import pprint
 
 meta_config = fedmsg.config.load_config([], None)
 fedmsg.meta.make_processors(**meta_config)
