@@ -21,7 +21,7 @@ def _timestamp(message):
         'usadate': ts_obj.strftime("%m/%d/%Y"),
         'fulldate': ts_obj.strftime("%A, %B %d, %Y"),
         'time': ts_obj.strftime("%H:%M %p"),
-        'epoch': ts,
+        'epoch': str(ts),
     }
 
 meta_methods = {
