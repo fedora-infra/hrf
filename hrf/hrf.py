@@ -4,7 +4,7 @@ import fedmsg.meta
 import json
 import datetime
 import pretty
-from pytz import timezone
+from pytz import timezone, UnknownTimeZoneError
 
 meta_config = fedmsg.config.load_config([], None)
 fedmsg.meta.make_processors(**meta_config)
@@ -70,34 +70,37 @@ def route(api_method):
 
     results = []
 
-    if api_method in meta_methods.keys():
-        for message in parsed:
-            if api_method == 'all':
-                # Return a JSON dict of all HR responses
-                values = {}
-                for name in meta_methods.keys():
-                    if name == 'all':
-                        continue
-                    elif name == 'timestamp':
-                        result = meta_methods[name](message, user_timezone)
-                    else:
-                        result = meta_methods[name](message)
-                    if isinstance(result, set):
-                        result = list(result)
-                    values[name] = result
-                results.append(values)
-            else:
-                # This is guaranteed to exist at this point.
-                if api_method == 'timezone':
-                    method = meta_methods[api_method]
-                    results.append(method(message, user_timezone))
+    try:
+        if api_method in meta_methods.keys():
+            for message in parsed:
+                if api_method == 'all':
+                    # Return a JSON dict of all HR responses
+                    values = {}
+                    for name in meta_methods.keys():
+                        if name == 'all':
+                            continue
+                        elif name == 'timestamp':
+                            result = meta_methods[name](message, user_timezone)
+                        else:
+                            result = meta_methods[name](message)
+                        if isinstance(result, set):
+                            result = list(result)
+                        values[name] = result
+                    results.append(values)
                 else:
-                    method = meta_methods[api_method]
-                    results.append(method(message))
-
-        return jsonify({'results': results})
+                    # This is guaranteed to exist at this point.
+                    if api_method == 'timestamp':
+                        method = meta_methods[api_method]
+                        results.append(method(message, user_timezone))
+                    else:
+                        method = meta_methods[api_method]
+                        results.append(method(message))
+        else:
+            return jsonify({"error": "That method was invalid."}), 404
+    except UnknownTimeZoneError as e:
+        return jsonify({"error": "Invalid timezone parameter."}), 400
     else:
-        return "That method was invalid.", 404
+        return jsonify({'results': results})
 
 if __name__ == "__main__":
     app.run()
