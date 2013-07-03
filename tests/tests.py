@@ -33,5 +33,21 @@ class HrfTestCase(unittest.TestCase):
         assert post['results'][1]['repr'] == 'buildsys.build.state.change -- uthash-1.9.8-3.el6 started building http://koji.fedoraproject.org/koji/buildinfo?buildID=430456'
         assert post['results'][1]['icon'] == 'http://fedoraproject.org/w/uploads/2/20/Artwork_DesignService_koji-icon-48.png'
 
+    def test_json1_timezone1(self):
+        json_input = file(os.path.join(directory, '1.json'), 'r').read()
+        post1 = json.loads(self.app.post('/timestamp?timezone=US/Eastern', data=json_input).data)
+        post2 = json.loads(self.app.post('/timestamp', data=json_input).data)
+        assert post1['results'][0]['iso'] != post2['results'][0]['iso']
+
+    def test_json1_timezone_error(self):
+        json_input = file(os.path.join(directory, '1.json'), 'r').read()
+        post = json.loads(self.app.post('/timestamp?timezone=invalid/invalid', data=json_input).data)
+        assert post['error'] == "Invalid timezone parameter."
+
+    def test_json1_method_error(self):
+        json_input = file(os.path.join(directory, '1.json'), 'r').read()
+        post = json.loads(self.app.post('/derpderp', data=json_input).data)
+        assert post['error'] == "That method was invalid."
+
 if __name__ == '__main__':
     unittest.main()
