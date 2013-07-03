@@ -38,6 +38,7 @@ class HrfTestCase(unittest.TestCase):
         post1 = json.loads(self.app.post('/timestamp?timezone=US/Eastern', data=json_input).data)
         post2 = json.loads(self.app.post('/timestamp', data=json_input).data)
         assert post1['results'][0]['iso'] != post2['results'][0]['iso']
+        assert post1['results'][0]['time'] != post2['results'][0]['time']
 
     def test_json1_timezone_error(self):
         json_input = file(os.path.join(directory, '1.json'), 'r').read()
