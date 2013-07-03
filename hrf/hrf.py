@@ -88,8 +88,12 @@ def route(api_method):
                 results.append(values)
             else:
                 # This is guaranteed to exist at this point.
-                method = meta_methods[api_method]
-                results.append(method(message))
+                if api_method == 'timezone':
+                    method = meta_methods[api_method]
+                    results.append(method(message, user_timezone))
+                else:
+                    method = meta_methods[api_method]
+                    results.append(method(message))
 
         return jsonify({'results': results})
     else:
