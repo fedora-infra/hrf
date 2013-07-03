@@ -16,7 +16,10 @@ def _timestamp(message, user_timezone):
     '''Return a dict containing the timestamp in a bunch of formats.'''
     ts = message['timestamp']
     ts_obj = datetime.datetime.fromtimestamp(ts)
-    localized = timezone(user_timezone).localize(ts_obj)
+    utc = timezone('UTC')
+    utc_obj = utc.normalize(utc.localize(ts_obj))
+    localized = utc_obj.astimezone(timezone(user_timezone))
+
     return {
         'ago': pretty.date(ts_obj),
         'iso': localized.isoformat(),
