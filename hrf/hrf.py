@@ -4,6 +4,7 @@ import fedmsg.meta
 import json
 import datetime
 import pretty
+from pytz import timezone
 
 meta_config = fedmsg.config.load_config([], None)
 fedmsg.meta.make_processors(**meta_config)
@@ -11,16 +12,17 @@ fedmsg.meta.make_processors(**meta_config)
 app = Flask(__name__)
 app.debug = True
 
-def _timestamp(message):
+def _timestamp(message, user_timezone):
     '''Return a dict containing the timestamp in a bunch of formats.'''
     ts = message['timestamp']
     ts_obj = datetime.datetime.fromtimestamp(ts)
+    localized = timezone(user_timezone).localize(ts_obj)
     return {
         'ago': pretty.date(ts_obj),
-        'iso': ts_obj.isoformat(),
-        'usadate': ts_obj.strftime("%m/%d/%Y"),
-        'fulldate': ts_obj.strftime("%A, %B %d, %Y"),
-        'time': ts_obj.strftime("%H:%M %p"),
+        'iso': localized.isoformat(),
+        'usadate': localized.strftime("%m/%d/%Y"),
+        'fulldate': localized.strftime("%A, %B %d, %Y"),
+        'time': localized.strftime("%H:%M %p"),
         'epoch': str(ts),
     }
 
@@ -60,6 +62,8 @@ Available endpoints:
 def route(api_method):
     parsed = json.loads(request.data)
 
+    user_timezone = request.args.get('timezone', 'UTC')
+
     # Sigh.
     if isinstance(parsed, dict):
         parsed = [parsed]
@@ -74,7 +78,10 @@ def route(api_method):
                 for name in meta_methods.keys():
                     if name == 'all':
                         continue
-                    result = meta_methods[name](message)
+                    elif name == 'timestamp':
+                        result = meta_methods[name](message, user_timezone)
+                    else:
+                        result = meta_methods[name](message)
                     if isinstance(result, set):
                         result = list(result)
                     values[name] = result
