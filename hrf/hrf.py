@@ -25,7 +25,7 @@ def _timestamp(message, user_timezone):
         'iso': localized.isoformat(),
         'usadate': localized.strftime("%m/%d/%Y"),
         'fulldate': localized.strftime("%A, %B %d, %Y"),
-        'time': localized.strftime("%H:%M %p"),
+        'time': localized.strftime("%H:%M"),
         'epoch': str(ts),
     }
 
