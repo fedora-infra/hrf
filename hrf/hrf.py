@@ -80,32 +80,30 @@ def route(api_method):
     results = []
 
     try:
-        if api_method in meta_methods.keys():
-            for message in parsed:
-                if api_method == 'all':
-                    # Return a JSON dict of all HR responses
-                    values = {}
-                    for name in meta_methods.keys():
-                        if name == 'all':
-                            continue
-                        elif name == 'timestamp':
-                            result = meta_methods[name](message, user_timezone)
-                        else:
-                            result = meta_methods[name](message)
-                        if isinstance(result, set):
-                            result = list(result)
-                        values[name] = result
-                    results.append(values)
-                else:
-                    # This is guaranteed to exist at this point.
-                    if api_method == 'timestamp':
-                        method = meta_methods[api_method]
-                        results.append(method(message, user_timezone))
-                    else:
-                        method = meta_methods[api_method]
-                        results.append(method(message))
-        else:
+        if api_method not in meta_methods:
             return jsonify({"error": "That method was invalid."}), 404
+
+        for message in parsed:
+            if api_method == 'all':
+                # Return a JSON dict of all HR responses
+                values = {}
+                for name in meta_methods.keys():
+                    if name == 'all':
+                        continue
+                    elif name == 'timestamp':
+                        result = meta_methods[name](message, user_timezone)
+                    else:
+                        result = meta_methods[name](message)
+                    if isinstance(result, set):
+                        result = list(result)
+                    values[name] = result
+                results.append(values)
+            elif api_method == 'timestamp':
+                method = meta_methods[api_method]
+                results.append(method(message, user_timezone))
+            else:
+                method = meta_methods[api_method]
+                results.append(method(message))
     except UnknownTimeZoneError as e:
         return jsonify({"error": "Invalid timezone parameter."}), 400
     else:
