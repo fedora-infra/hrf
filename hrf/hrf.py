@@ -12,6 +12,7 @@ fedmsg.meta.make_processors(**meta_config)
 app = Flask(__name__)
 app.debug = True
 
+
 def _timestamp(message, user_timezone):
     '''Return a dict containing the timestamp in a bunch of formats.'''
     ts = message['timestamp']
@@ -45,9 +46,13 @@ meta_methods = {
     'all': str,
 }
 
+
 @app.route("/")
 def usage():
-    methods = '\n'.join(['POST /' + name for name in sorted(meta_methods.keys())])
+    methods = '\n'.join([
+        'POST /' + name
+        for name in sorted(meta_methods.keys())
+    ])
     return Response(
         """Welcome to hrf - the Human Readable frontend to Fedmsg.
 
@@ -60,6 +65,7 @@ Available endpoints:
 %s
 """ % methods,
         mimetype='text/plain')
+
 
 @app.route("/<api_method>", methods=['POST'])
 def route(api_method):
@@ -74,36 +80,35 @@ def route(api_method):
     results = []
 
     try:
-        if api_method in meta_methods.keys():
-            for message in parsed:
-                if api_method == 'all':
-                    # Return a JSON dict of all HR responses
-                    values = {}
-                    for name in meta_methods.keys():
-                        if name == 'all':
-                            continue
-                        elif name == 'timestamp':
-                            result = meta_methods[name](message, user_timezone)
-                        else:
-                            result = meta_methods[name](message)
-                        if isinstance(result, set):
-                            result = list(result)
-                        values[name] = result
-                    results.append(values)
-                else:
-                    # This is guaranteed to exist at this point.
-                    if api_method == 'timestamp':
-                        method = meta_methods[api_method]
-                        results.append(method(message, user_timezone))
-                    else:
-                        method = meta_methods[api_method]
-                        results.append(method(message))
-        else:
+        if api_method not in meta_methods:
             return jsonify({"error": "That method was invalid."}), 404
+
+        for message in parsed:
+            if api_method == 'all':
+                # Return a JSON dict of all HR responses
+                values = {}
+                for name in meta_methods.keys():
+                    if name == 'all':
+                        continue
+                    elif name == 'timestamp':
+                        result = meta_methods[name](message, user_timezone)
+                    else:
+                        result = meta_methods[name](message)
+                    if isinstance(result, set):
+                        result = list(result)
+                    values[name] = result
+                results.append(values)
+            elif api_method == 'timestamp':
+                method = meta_methods[api_method]
+                results.append(method(message, user_timezone))
+            else:
+                method = meta_methods[api_method]
+                results.append(method(message))
     except UnknownTimeZoneError as e:
         return jsonify({"error": "Invalid timezone parameter."}), 400
     else:
         return jsonify({'results': results})
+
 
 if __name__ == "__main__":
     app.run()
