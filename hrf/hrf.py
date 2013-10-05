@@ -51,16 +51,21 @@ meta_methods = {
 @app.route("/")
 def usage():
     methods = '\n'.join([
-        'POST /' + name
+        '/' + name
         for name in sorted(meta_methods.keys())
     ])
     return Response(
         """Welcome to hrf - the Human Readable frontend to Fedmsg.
 
-To use hrf, simply POST to any of the endpoints below.
+To use hrf, simply POST a list of fedmsg messages from datagrepper to any of the
+endpoints below.
+
 The names of the endpoints reflect the names of the fedmsg.meta API
 methods. For example POSTing to /title will return fedmsg.meta.msg2title()
 and POSTing to /repr will return fedmsg.meta.msg2repr().
+
+If you 'GET' instead, we will query datagrepper on your behalf, sending it your
+querystring.
 
 Available endpoints:
 %s
