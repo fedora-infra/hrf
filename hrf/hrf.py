@@ -4,6 +4,7 @@ import fedmsg.meta
 import json
 import datetime
 import pretty
+import requests
 from pytz import timezone, UnknownTimeZoneError
 
 meta_config = fedmsg.config.load_config([], None)
@@ -67,9 +68,19 @@ Available endpoints:
         mimetype='text/plain')
 
 
-@app.route("/<api_method>", methods=['POST'])
+@app.route("/<api_method>", methods=['POST', 'GET'])
 def route(api_method):
-    parsed = json.loads(request.data)
+    parsed = {}
+
+    if request.method == 'GET':
+        qs = request.query_string
+        r = requests.get('https://apps.fedoraproject.org/datagrepper/raw/?' + qs)
+        if r.status_code != 200:
+            return jsonify({"error": "Datagrepper returned non-200 response code."}), 400
+        else:
+            parsed = r.json()['raw_messages']
+    else:
+        parsed = json.loads(request.data)
 
     user_timezone = request.args.get('timezone', 'UTC')
 
