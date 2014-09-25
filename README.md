@@ -1,5 +1,7 @@
 # hrf (Human Readable Fedmsg)
 
+**DEPRECATED**: Please use Datagrepper instead now.
+
 hrf is a tiny Flask application that accepts JSON blobs from the fedmsg bus
 via `POST` requests and converts them into human readable strings that can be
 used to display the information.
